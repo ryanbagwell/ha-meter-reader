@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Utility Meter Reader",
+        "description": "Configure the RTL-SDR receiver used to decode utility meter transmissions. Only one RTL-SDR dongle is supported per Home Assistant instance.",
+        "data": {
+          "protocols": "Protocols to decode",
+          "meter_ids": "Meter IDs to filter (space/comma separated, blank = all)",
+          "gain": "Tuner gain in dB, or \"auto\"",
+          "freq_correction": "Frequency correction (ppm)",
+          "switch_timeout": "Switch timeout in seconds (only used when alternating between scmplus/scm/idm/netidm and r900)"
+        }
+      }
+    },
+    "error": {
+      "invalid_meter_ids": "Meter IDs must be a space or comma separated list of integers.",
+      "invalid_protocols": "Select at least one protocol to decode."
+    },
+    "abort": {
+      "already_configured": "RTL-AMR is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Utility Meter Reader Options",
+        "data": {
+          "protocols": "Protocols to decode",
+          "meter_ids": "Meter IDs to filter (space/comma separated, blank = all)",
+          "gain": "Tuner gain in dB, or \"auto\"",
+          "freq_correction": "Frequency correction (ppm)",
+          "switch_timeout": "Switch timeout in seconds (only used when alternating between scmplus/scm/idm/netidm and r900)"
+        }
+      },
+      "meters": {
+        "title": "Per-Meter Display Scale",
+        "description": "For each meter that has reported in, set the multiplier to convert its raw ERT count to a real-world unit (e.g. 1 for kWh, 0.01 for CCF if the meter reports in cubic feet) and label the unit. Fields are named meter_<id>_multiplier / meter_<id>_unit."
+      }
+    },
+    "error": {
+      "invalid_meter_ids": "Meter IDs must be a space or comma separated list of integers.",
+      "invalid_protocols": "Select at least one protocol to decode."
+    }
+  }
+}
