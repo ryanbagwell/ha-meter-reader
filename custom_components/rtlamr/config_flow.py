@@ -1,4 +1,4 @@
-"""Config flow for RTL-AMR Smart Meter."""
+"""Config flow for Utility Meter Reader."""
 
 from __future__ import annotations
 
@@ -132,7 +132,7 @@ def _process_input(user_input: dict[str, Any]) -> dict[str, Any]:
 
 
 class RtlamrConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for RTL-AMR Smart Meter.
+    """Handle a config flow for Utility Meter Reader.
 
     Only one RTL-SDR dongle/config entry is supported per HA instance.
     """
@@ -151,7 +151,7 @@ class RtlamrConfigFlow(ConfigFlow, domain=DOMAIN):
             except _InvalidInput as err:
                 errors["base"] = str(err)
             else:
-                return self.async_create_entry(title="RTL-AMR Smart Meter", data=data)
+                return self.async_create_entry(title="Utility Meter Reader", data=data)
 
         return self.async_show_form(
             step_id="user", data_schema=_schema({}), errors=errors

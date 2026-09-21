@@ -1,4 +1,4 @@
-"""Constants for the RTL-AMR Smart Meter integration."""
+"""Constants for the Utility Meter Reader integration."""
 
 DOMAIN = "rtlamr"
 

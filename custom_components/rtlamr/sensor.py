@@ -1,4 +1,4 @@
-"""Sensor platform for RTL-AMR Smart Meter.
+"""Sensor platform for Utility Meter Reader.
 
 One sensor entity is created per meter endpoint_id, the first time a reading
 for it is decoded (dynamic discovery, similar to MQTT discovery — there's no
@@ -33,25 +33,51 @@ async def async_setup_entry(
 ) -> None:
     """Set up sensors for meters already known, and listen for new ones."""
     stored = hass.data[DOMAIN][entry.entry_id]
-    known_meters: set[int] = stored["known_meters"]
+    known_meters: dict[int, dict] = stored["known_meters"]
 
     @callback
     def _add_meter(record: dict) -> None:
-        async_add_entities([MeterSensor(entry, record)])
+        async_add_entities([create_meter_sensor(entry, record)])
 
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_NEW_METER, _add_meter))
 
     # Any meters that reported in between the listener starting (in
     # async_setup_entry) and this platform coming up.
     async_add_entities(
-        MeterSensor(entry, {"endpoint_id": endpoint_id}) for endpoint_id in known_meters
+        create_meter_sensor(entry, record) for record in known_meters.values()
     )
 
 
+def _endpoint_type(record: dict) -> str | None:
+    """Return the meter-type code from a record.
+
+    SCM/SCM+ key this "endpoint_type"; IDM/NetIDM key it "ert_type" — same
+    4-bit meter-type code, normalized here to one accessor.
+    """
+    return record.get("endpoint_type", record.get("ert_type"))
+
+
+def create_meter_sensor(entry: ConfigEntry, record: dict) -> MeterSensor:
+    """Build the MeterSensor subclass matching the record's commodity."""
+    commodity = commodity_for_endpoint_type(_endpoint_type(record))
+    return METER_SENSOR_CLASSES.get(commodity, OtherMeterSensor)(entry, record)
+
+
 class MeterSensor(SensorEntity):
-    """The most recent consumption reading from one meter endpoint."""
+    """The most recent consumption reading from one meter endpoint.
+
+    Subclasses set `_attr_icon` and `_entity_type` per commodity; use
+    `create_meter_sensor` to pick the right one for a record.
+    """
+
+    _entity_type: str
 
     _attr_has_entity_name = True
+    # name=None makes this the device's primary entity, so it takes the device
+    # name ("{entity_type} Meter ({endpoint_id})") as its own name and entity_id
+    # instead of being suffixed onto it. Both are only defaults applied when the
+    # entity/device is first registered; renames made in the UI are kept.
+    _attr_name = None
     _attr_should_poll = False
     # Raw ERT consumption counts have no inherent scale — it depends on the
     # physical meter's dial multiplier, which isn't transmitted in the
@@ -66,7 +92,6 @@ class MeterSensor(SensorEntity):
         endpoint_id = record["endpoint_id"]
         self._endpoint_id = endpoint_id
         self._attr_unique_id = f"{entry.entry_id}_{endpoint_id}"
-        self._attr_name = "Consumption"
 
         scale = entry.options.get(CONF_METER_SCALES, {}).get(str(endpoint_id), {})
         self._multiplier: float = scale.get(CONF_MULTIPLIER, DEFAULT_MULTIPLIER)
@@ -87,9 +112,7 @@ class MeterSensor(SensorEntity):
         }
         if raw_consumption is not None and self._multiplier != DEFAULT_MULTIPLIER:
             attrs["raw_consumption"] = raw_consumption
-        # SCM/SCM+ key this "endpoint_type"; IDM/NetIDM key it "ert_type" —
-        # same 4-bit meter-type code, normalized here to one attribute name.
-        endpoint_type = record.get("endpoint_type", record.get("ert_type"))
+        endpoint_type = _endpoint_type(record)
         if endpoint_type is not None:
             attrs["endpoint_type"] = endpoint_type
             commodity = commodity_for_endpoint_type(endpoint_type)
@@ -98,8 +121,7 @@ class MeterSensor(SensorEntity):
         self._attr_extra_state_attributes = attrs
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, str(self._endpoint_id))},
-            name=f"Meter {self._endpoint_id}",
-            manufacturer="RTL-AMR",
+            name=f"{self._entity_type} Meter ({self._endpoint_id})",
             model=record.get("type") or "Unknown",
         )
 
@@ -117,3 +139,39 @@ class MeterSensor(SensorEntity):
     def _async_update_from_signal(self, record: dict) -> None:
         self._apply(record)
         self.async_write_ha_state()
+
+
+class WaterMeterSensor(MeterSensor):
+    """A water meter."""
+
+    _entity_type = "Water"
+    _attr_icon = "mdi:water"
+
+
+class GasMeterSensor(MeterSensor):
+    """A gas meter."""
+
+    _entity_type = "Gas"
+    _attr_icon = "mdi:meter-gas"
+
+
+class ElectricMeterSensor(MeterSensor):
+    """An electric meter."""
+
+    _entity_type = "Electric"
+    _attr_icon = "mdi:lightning-bolt"
+
+
+class OtherMeterSensor(MeterSensor):
+    """A meter whose commodity is unknown or unclassified."""
+
+    _entity_type = "Other"
+    _attr_icon = "mdi:gauge"
+
+
+# Keyed by the names commodity_for_endpoint_type() returns.
+METER_SENSOR_CLASSES: dict[str | None, type[MeterSensor]] = {
+    "water": WaterMeterSensor,
+    "gas": GasMeterSensor,
+    "electric": ElectricMeterSensor,
+}

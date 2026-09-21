@@ -1,4 +1,4 @@
-"""The RTL-AMR Smart Meter integration.
+"""The Utility Meter Reader integration.
 
 Wraps rtlamr_python.start_listening() to run the SDR read/decode loop on a
 background thread for the lifetime of the config entry. Each decoded reading
@@ -46,7 +46,9 @@ PLATFORMS = [Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Start the SDR listener thread and forward setup to the sensor platform."""
     settings: dict[str, Any] = {**entry.data, **entry.options}
-    known_meters: set[int] = set()
+    # endpoint_id -> first record seen, so the sensor platform can pick the
+    # right MeterSensor subclass (by commodity) even if it comes up late.
+    known_meters: dict[int, dict] = {}
 
     @callback
     def _async_handle_reading(record: dict) -> None:
@@ -56,7 +58,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if endpoint_id is None:
             return
         if endpoint_id not in known_meters:
-            known_meters.add(endpoint_id)
+            known_meters[endpoint_id] = record
             async_dispatcher_send(hass, SIGNAL_NEW_METER, record)
         async_dispatcher_send(hass, SIGNAL_METER_UPDATE.format(endpoint_id), record)
 

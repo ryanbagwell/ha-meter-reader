@@ -18,7 +18,7 @@
       "invalid_protocols": "Select at least one protocol to decode."
     },
     "abort": {
-      "already_configured": "RTL-AMR is already configured."
+      "already_configured": "Utility Meter Reader is already configured."
     }
   },
   "options": {

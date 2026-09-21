@@ -1,6 +1,6 @@
-# ha-rtlamr
+# Home Assistant Utility Meter Reader
 
-A Home Assistant custom integration that listens for utility meter
+A drop-in Home Assistant integration that listens for utility meter
 transmissions (electric, water, gas ERT meters) using an RTL-SDR dongle and
 the [rtlamr-python](https://github.com/ryanbagwell/rtlamr-python) library.
 
@@ -26,7 +26,7 @@ config entry. Every decoded reading is:
 
 1. HACS → Integrations → ⋮ → Custom repositories.
 2. Add this repo URL, category "Integration".
-3. Install "RTL-AMR Smart Meter", then restart Home Assistant.
+3. Install "Utility Meter Reader", then restart Home Assistant.
 
 ### Manual
 
@@ -34,7 +34,7 @@ Copy `custom_components/rtlamr` into your Home Assistant `config/custom_componen
 
 ## Setup
 
-Settings → Devices & Services → Add Integration → "RTL-AMR Smart Meter".
+Settings → Devices & Services → Add Integration → "Utility Meter Reader".
 
 You'll be asked for:
 
@@ -82,8 +82,10 @@ Event payload matches rtlamr-python's reading dict, e.g.:
 
 ## Sensor entities
 
-Each meter shows up as a device ("Meter `<endpoint_id>`") with a single
-`Consumption` sensor. Its state is the raw ERT consumption count — the
+Each meter shows up as a device with a single sensor, both named
+"`<type>` Meter (`<endpoint_id>`)" — e.g. "Water Meter (12345678)". The type
+(Water, Gas, Electric, or Other when the meter type is unknown) also selects
+the sensor's icon. The sensor's state is the raw ERT consumption count — the
 protocol doesn't carry the meter's scale factor, so converting it to
 kWh/gallons/ft³ depends on your specific meter model and needs a template
 sensor on top. All other fields from the reading (`type`, `endpoint_type`,
