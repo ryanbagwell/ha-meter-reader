@@ -49,12 +49,15 @@ async def async_setup_entry(
 
 
 def _endpoint_type(record: dict) -> str | None:
-    """Return the meter-type code from a record.
+    """Return the meter-type code from a record, for commodity_for_endpoint_type().
 
     SCM/SCM+ key this "endpoint_type"; IDM/NetIDM key it "ert_type" — same
-    4-bit meter-type code, normalized here to one accessor.
+    4-bit meter-type code, normalized here to one accessor. R900 has no such
+    code on the wire (it's a single-commodity water protocol), so fall back
+    to its "type" ("R900") — commodity_for_endpoint_type() also accepts a
+    protocol name for exactly this case.
     """
-    return record.get("endpoint_type", record.get("ert_type"))
+    return record.get("endpoint_type", record.get("ert_type", record.get("type")))
 
 
 def create_meter_sensor(entry: ConfigEntry, record: dict) -> MeterSensor:
