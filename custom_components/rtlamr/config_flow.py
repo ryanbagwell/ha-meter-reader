@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from rtlamr_python import ALL_PROTOCOLS, DEFAULT_PROTOCOLS
+from rtlamr_python import ALL_PROTOCOLS
 
 from .const import (
     CONF_FREQ_CORRECTION,
@@ -46,7 +46,7 @@ def _schema(defaults: dict[str, Any]) -> vol.Schema:
         {
             vol.Required(
                 CONF_PROTOCOLS,
-                default=defaults.get(CONF_PROTOCOLS, list(DEFAULT_PROTOCOLS)),
+                default=defaults.get(CONF_PROTOCOLS, list(ALL_PROTOCOLS)),
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=list(ALL_PROTOCOLS),
