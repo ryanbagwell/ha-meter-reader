@@ -23,7 +23,11 @@ DEFAULT_SWITCH_TIMEOUT = 60.0
 DEFAULT_MULTIPLIER = 1.0
 
 # Suggested (not exhaustive) unit choices for the meter-scale options step.
-UNIT_SUGGESTIONS = ["kWh", "CCF", "CCY", "gal", "ft³", "m³", "therm"]
+# Kept as HA's canonical unit strings (UnitOfEnergy/UnitOfVolume) so they
+# validate against the sensors' device classes (see MeterSensor subclasses
+# in sensor.py) without triggering HA's "not a valid unit for the device
+# class" warning.
+UNIT_SUGGESTIONS = ["kWh", "thm", "CCF", "gal", "ft³", "m³"]
 
 # Fired on hass.bus for every decoded reading, regardless of whether a sensor
 # entity exists for that meter yet.

@@ -7,7 +7,12 @@ way to know which meters exist ahead of time).
 
 from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -100,6 +105,18 @@ class MeterSensor(SensorEntity):
         self._multiplier: float = scale.get(CONF_MULTIPLIER, DEFAULT_MULTIPLIER)
         self._attr_native_unit_of_measurement = scale.get(CONF_UNIT) or None
 
+        # entity_description.device_class (set per subclass, absent on
+        # OtherMeterSensor) requires a unit HA recognizes for that device
+        # class. Until this meter's unit is configured (Options -> "Per-Meter
+        # Display Scale"), leave device_class unset rather than log HA's
+        # "not a valid unit for the device class" warning on every restart.
+        description = getattr(self, "entity_description", None)
+        self._attr_device_class = (
+            description.device_class
+            if description and self._attr_native_unit_of_measurement
+            else None
+        )
+
         self._apply(record)
 
     @callback
@@ -126,6 +143,7 @@ class MeterSensor(SensorEntity):
             identifiers={(DOMAIN, str(self._endpoint_id))},
             name=f"{self._entity_type} Meter ({self._endpoint_id})",
             model=record.get("type") or "Unknown",
+            serial_number=str(self._endpoint_id),
         )
 
     async def async_added_to_hass(self) -> None:
@@ -149,6 +167,9 @@ class WaterMeterSensor(MeterSensor):
 
     _entity_type = "Water"
     _attr_icon = "mdi:water"
+    entity_description = SensorEntityDescription(
+        key="water_consumption", device_class=SensorDeviceClass.WATER
+    )
 
 
 class GasMeterSensor(MeterSensor):
@@ -156,6 +177,9 @@ class GasMeterSensor(MeterSensor):
 
     _entity_type = "Gas"
     _attr_icon = "mdi:meter-gas"
+    entity_description = SensorEntityDescription(
+        key="gas_consumption", device_class=SensorDeviceClass.GAS
+    )
 
 
 class ElectricMeterSensor(MeterSensor):
@@ -163,6 +187,11 @@ class ElectricMeterSensor(MeterSensor):
 
     _entity_type = "Electric"
     _attr_icon = "mdi:lightning-bolt"
+    # HA has no dedicated "electric" device class; ENERGY is the standard
+    # fit for a commodity meter and is what enables the Energy dashboard.
+    entity_description = SensorEntityDescription(
+        key="electric_consumption", device_class=SensorDeviceClass.ENERGY
+    )
 
 
 class OtherMeterSensor(MeterSensor):

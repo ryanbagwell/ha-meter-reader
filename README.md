@@ -95,6 +95,27 @@ The state class is `total_increasing`, so it works with the Energy dashboard
 and long-term statistics once you've applied the right unit/scale via a
 template sensor or utility meter helper.
 
+## Dashboard
+
+The integration ships a Lovelace dashboard strategy that groups every meter
+by commodity (Water, Gas, Electric, Other) and rebuilds itself from the live
+device/entity registries on every render — so newly discovered meters just
+appear, with nothing to edit. It's registered as a frontend resource
+automatically; there's nothing to install separately.
+
+To use it, add a new dashboard (Settings → Dashboards → Add Dashboard →
+New dashboard from scratch), then replace its config: open its three-dot
+menu → Edit Dashboard → three-dot menu → Edit in YAML, and replace the
+content with:
+
+```yaml
+strategy:
+  type: custom:rtlamr-meters
+```
+
+That's a one-time step — the dashboard needs no further editing as meters
+are added.
+
 ## Known limitations
 
 - Single RTL-SDR dongle per Home Assistant instance.
