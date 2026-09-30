@@ -35,7 +35,7 @@
       },
       "meters": {
         "title": "Per-Meter Display Scale",
-        "description": "For each meter that has reported in, set the multiplier to convert its raw ERT count to a real-world unit (e.g. 1 for kWh, 0.01 for CCF if the meter reports in cubic feet) and label the unit. Fields are named meter_<id>_multiplier / meter_<id>_unit."
+        "description": "For each meter that has reported in, set the multiplier to convert its raw ERT count to a real-world unit (e.g. 1 for kWh, 0.01 for CCF if the meter reports in cubic feet) and label the unit. Fields are named meter_id_multiplier / meter_id_unit."
       }
     },
     "error": {
