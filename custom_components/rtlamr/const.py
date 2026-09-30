@@ -1,6 +1,6 @@
 """Constants for the Utility Meter Reader integration."""
 
-DOMAIN = "rtlamr"
+DOMAIN = "ha-meter-reader"
 
 CONF_PROTOCOLS = "protocols"
 CONF_METER_IDS = "meter_ids"

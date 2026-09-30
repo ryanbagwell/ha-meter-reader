@@ -1,5 +1,5 @@
 {
-  "domain": "rtlamr",
+  "domain": "ha-meter-reader",
   "name": "Utility Meter Reader",
   "codeowners": ["@ryanbagwell"],
   "config_flow": true,
